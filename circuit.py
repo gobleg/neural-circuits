@@ -1,3 +1,5 @@
+import sys
+import os
 import numpy as np
 
 def OrCircuit(X):
@@ -18,12 +20,25 @@ def AndCircuit(X):
         X1 = np.append(X1, X[i] and X[i+1])
     return OrCircuit(X1)
 
-def CreateData(inputSize, numDataPoints):
+def SumCircuit(X):
+    return np.sum(X)
+
+def AdderCircuit(X):
+    n = X.shape[0]
+    X1 = X[0:n/2]
+    X2 = X[n/2:n]
+    x1 = np.packbits(X1)
+    x1 = 256*x1[0] + x1[1]
+    x2 = np.packbits(X2)
+    x2 = 256*x2[0] + x2[1]
+    return x1 + x2
+
+def CreateData(inputSize, numDataPoints, circuitFunction):
     X = np.atleast_2d(np.array([]))
     Y = np.array([])
     for i in range(numDataPoints):
         x = np.atleast_2d(np.random.randint(2, size=inputSize))
-        y = OrCircuit(x.ravel())
+        y = circuitFunction(x.ravel())
         if i == 0:
             X = x
         else:
@@ -31,5 +46,21 @@ def CreateData(inputSize, numDataPoints):
         Y = np.append(Y, y)
     return X, Y
 
-X, Y = CreateData(32, 10000)
+functionDict = {'or' : OrCircuit,
+                'sum' : SumCircuit,
+                'adder' : AdderCircuit}
+
+if len(sys.argv) != 2:
+    print "Please specify a circuit from the following list:"
+    print functionDict.keys()
+    sys.exit()
+funcStr = sys.argv[1]
+if funcStr not in functionDict:
+    print "Please specify a circuit from the following list:"
+    print functionDict.keys()
+    sys.exit()
+func = functionDict[funcStr]
+X, Y = CreateData(32, 10000, func)
+if os.path.exists('data.npz'):
+    os.remove('data.npz')
 np.savez('data.npz', X, Y)
