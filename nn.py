@@ -18,6 +18,10 @@ X_trn, X_test, Y_trn, Y_test = loadData()
 Y_trn = np.asarray([[0,1] if y == 1 else [1, 0] for y in Y_trn])
 Y_trn = Y_trn.reshape([len(Y_trn), 2])
 
+print "test: " + str(float(np.count_nonzero(Y_test)) / float(len(Y_test)))
+#Y_test_var = (float(np.count_nonzero(Y_test)) / float(len(Y_test))) * (1 - float((np.count_nonzero(Y_test)) / float(len(Y_test)))) #Y_test.var()
+Y_test_var = Y_test.var()
+
 Y_test = np.asarray([[0,1] if y == 1 else [1, 0] for y in Y_test])
 Y_test = Y_test.reshape([len(Y_test), 2])
 
@@ -30,11 +34,8 @@ def get_batch(X, Y):
 print "Completed imports"
 
 # Parameters                                                                       
-#learning_rate = 0.2                                                               
 learning_rate = 0.3
-#num_steps = 50                                                                    
-num_steps = 500
-#batch_size = 40                                                                   
+num_steps = 10000
 batch_size = 70
 display_step = 1
 
@@ -64,12 +65,16 @@ biases = {
 
 # Create model                                                                     
 def neural_net(x):
+
     # Hidden fully connected layer with 256 neurons                                
     layer_1 = tf.add(tf.matmul(x, weights['h1']), biases['b1'])
+
     # Hidden fully connected layer with 256 neurons                                
     layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
+
     # Output fully connected layer with a neuron for each class                    
     out_layer = tf.matmul(layer_2, weights['out']) + biases['out']
+
     return out_layer
 
 
@@ -82,7 +87,6 @@ prediction = tf.nn.softmax(logits)
 # Define loss and optimizer                                                        
 loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
     logits=logits, labels=Y))
-#loss_op = tf.nn.l2_loss(logits-Y)
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 train_op = optimizer.minimize(loss_op)
 
@@ -91,8 +95,8 @@ correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(Y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 # Initialize the variables (i.e. assign their default value)                       
-#init = tf.global_variables_initializer()                                          
 init = tf.initialize_all_variables()
+
 
 
 # Start training                                                                   
@@ -108,7 +112,7 @@ with tf.Session() as sess:
 
         # Run optimization op (backprop)                                           
         sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
-        if step % display_step == 0 or step == 1:
+        if step % (100 * display_step) == 0 or step == 1:
             # Calculate batch loss and accuracy                                    
             loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x,
                                                                  Y: batch_y})
@@ -116,8 +120,19 @@ with tf.Session() as sess:
                   "{:.4f}".format(loss) + ", Training Accuracy= " + \
                   "{:.3f}".format(acc))
 
-    print("Optimization Finished!")
+    print("Optimization Finished!\n")
 
     # Calculate accuracy for MNIST test images                                      
-    print("Testing Accuracy:", sess.run(accuracy, feed_dict={X: X_test,
+    print("Testing Accuracy: ", sess.run(accuracy, feed_dict={X: X_test,
                                       Y: Y_test}))
+
+    accu = sess.run(accuracy, feed_dict = {X: X_test, Y: Y_test})
+
+    print str(accu * (1 - accu))
+    print Y_test_var
+    
+    print(  "R^2: " +  str( 1 - (accu * (1 - accu)) / Y_test_var )  )
+
+
+
+
