@@ -16,7 +16,7 @@ def loadData():
     return X_trn, X_test, Y_trn, Y_test
 
 X_trn, X_test, Y_trn, Y_test = loadData()
-clf = ElasticNet()
+clf = ElasticNet(alpha=0.1)
 clf.fit(X_trn, Y_trn)
 Y_test_hat = clf.predict(X_test)
 print Rsq(Y_test, Y_test_hat)
