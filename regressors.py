@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import BaggingRegressor
 from sklearn.linear_model import ElasticNet
@@ -95,8 +96,14 @@ if func is not None:
     print funcStr
     print regress(X_trn, X_test, Y_trn, Y_test, func)
 else:
+    names = []
+    values = []
     for name, func in functionDict.items():
         if func is None:
             continue
-        print name
-        print regress(X_trn, X_test, Y_trn, Y_test, func)
+        names.append(name)
+        values.append(regress(X_trn, X_test, Y_trn, Y_test, func))
+    y_pos = np.arange(len(names))
+    plt.barh(y_pos, values, align='center')
+    plt.yticks(y_pos, names)
+    plt.show()
