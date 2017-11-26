@@ -25,71 +25,44 @@ def loadData():
     Y_test = Y[n_trn:n]
     return X_trn, X_test, Y_trn, Y_test
 
-def adaboost(X_trn, X_test, Y_trn, Y_test):
-    clf = AdaBoostRegressor()
+def regress(X_trn, X_test, Y_trn, Y_test, func):
+    clf = func()
     clf.fit(X_trn, Y_trn)
     Y_test_hat = clf.predict(X_test)
     return Rsq(Y_test, Y_test_hat)
 
-def bagging(X_trn, X_test, Y_trn, Y_test):
-    clf = BaggingRegressor()
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def adaboost():
+    return AdaBoostRegressor()
 
-def elasticnet(X_trn, X_test, Y_trn, Y_test):
-    clf = ElasticNet(alpha=0.1)
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def bagging():
+    return BaggingRegressor()
 
-def extratrees(X_trn, X_test, Y_trn, Y_test):
-    clf = ExtraTreesRegressor()
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def elasticnet():
+    return ElasticNet(alpha=0.1)
 
-def gradientboosting(X_trn, X_test, Y_trn, Y_test):
-    clf = GradientBoostingRegressor()
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def extratrees():
+    return ExtraTreesRegressor()
 
-def lasso(X_trn, X_test, Y_trn, Y_test):
-    clf = Lasso(alpha=0.1)
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def gradientboosting():
+    return GradientBoostingRegressor()
 
-def rf(X_trn, X_test, Y_trn, Y_test):
-    clf = RandomForestRegressor()
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def lasso():
+    return Lasso(alpha=0.1)
 
-def ridge(X_trn, X_test, Y_trn, Y_test):
-    clf = Ridge()
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def rf():
+    return RandomForestRegressor()
 
-def sgd(X_trn, X_test, Y_trn, Y_test):
-    clf = SGDRegressor()
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def ridge():
+    return Ridge()
 
-def svrlin(X_trn, X_test, Y_trn, Y_test):
-    clf = SVR(kernel='linear')
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def sgd():
+    return SGDRegressor()
 
-def svrrbf(X_trn, X_test, Y_trn, Y_test):
-    clf = SVR(kernel='rbf')
-    clf.fit(X_trn, Y_trn)
-    Y_test_hat = clf.predict(X_test)
-    return Rsq(Y_test, Y_test_hat)
+def svrlin():
+    return SVR(kernel='linear')
+
+def svrrbf():
+    return SVR(kernel='rbf')
 
 functionDict = {
         'adaboost' : adaboost,
@@ -120,10 +93,10 @@ func = functionDict[funcStr]
 X_trn, X_test, Y_trn, Y_test = loadData()
 if func is not None:
     print funcStr
-    print func(X_trn, X_test, Y_trn, Y_test)
+    print regress(X_trn, X_test, Y_trn, Y_test, func)
 else:
     for name, func in functionDict.items():
         if func is None:
             continue
         print name
-        print func(X_trn, X_test, Y_trn, Y_test)
+        print regress(X_trn, X_test, Y_trn, Y_test, func)
