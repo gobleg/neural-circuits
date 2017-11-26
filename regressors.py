@@ -1,6 +1,10 @@
 import sys
 import numpy as np
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.ensemble import BaggingRegressor
 from sklearn.linear_model import ElasticNet
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import Lasso
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import Ridge
@@ -21,8 +25,32 @@ def loadData():
     Y_test = Y[n_trn:n]
     return X_trn, X_test, Y_trn, Y_test
 
+def adaboost(X_trn, X_test, Y_trn, Y_test):
+    clf = AdaBoostRegressor()
+    clf.fit(X_trn, Y_trn)
+    Y_test_hat = clf.predict(X_test)
+    return Rsq(Y_test, Y_test_hat)
+
+def bagging(X_trn, X_test, Y_trn, Y_test):
+    clf = BaggingRegressor()
+    clf.fit(X_trn, Y_trn)
+    Y_test_hat = clf.predict(X_test)
+    return Rsq(Y_test, Y_test_hat)
+
 def elasticnet(X_trn, X_test, Y_trn, Y_test):
     clf = ElasticNet(alpha=0.1)
+    clf.fit(X_trn, Y_trn)
+    Y_test_hat = clf.predict(X_test)
+    return Rsq(Y_test, Y_test_hat)
+
+def extratrees(X_trn, X_test, Y_trn, Y_test):
+    clf = ExtraTreesRegressor()
+    clf.fit(X_trn, Y_trn)
+    Y_test_hat = clf.predict(X_test)
+    return Rsq(Y_test, Y_test_hat)
+
+def gradientboosting(X_trn, X_test, Y_trn, Y_test):
+    clf = GradientBoostingRegressor()
     clf.fit(X_trn, Y_trn)
     Y_test_hat = clf.predict(X_test)
     return Rsq(Y_test, Y_test_hat)
@@ -34,9 +62,9 @@ def lasso(X_trn, X_test, Y_trn, Y_test):
     return Rsq(Y_test, Y_test_hat)
 
 def rf(X_trn, X_test, Y_trn, Y_test):
-    regr = RandomForestRegressor()
-    regr.fit(X_trn, Y_trn)
-    Y_test_hat = regr.predict(X_test)
+    clf = RandomForestRegressor()
+    clf.fit(X_trn, Y_trn)
+    Y_test_hat = clf.predict(X_test)
     return Rsq(Y_test, Y_test_hat)
 
 def ridge(X_trn, X_test, Y_trn, Y_test):
@@ -63,14 +91,20 @@ def svrrbf(X_trn, X_test, Y_trn, Y_test):
     Y_test_hat = clf.predict(X_test)
     return Rsq(Y_test, Y_test_hat)
 
-functionDict = {'elasticnet' : elasticnet,
+functionDict = {
+        'adaboost' : adaboost,
+        'bagging' : bagging,
+        'elasticnet' : elasticnet,
+        'extratrees' : extratrees,
+        'gradientboosting' : gradientboosting,
         'lasso' : lasso,
         'rf' : rf,
         'ridge' : ridge,
         'sgd' : sgd,
         'svrlin' : svrlin,
         'svrrbf' : svrrbf,
-        'all' : None}
+        'all' : None
+        }
 
 
 if len(sys.argv) != 2:
