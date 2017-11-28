@@ -13,17 +13,26 @@ def loadData():
     Y_test = Y[n_trn:n]
     return X_trn, X_test, Y_trn, Y_test
 
-X_trn, X_test, Y_trn, Y_test = loadData()
+X_trn, X_test, Y_trn_1, Y_test_1 = loadData()
 
-Y_trn = np.asarray([[0,1] if y == 1 else [1, 0] for y in Y_trn])
-Y_trn = Y_trn.reshape([len(Y_trn), 2])
+Y_trn = [0 for i in range(len(Y_trn_1))]
+for x in range(len(Y_trn)): Y_trn[x] = np.zeros(X_trn.shape[1])
+Y_trn = np.asarray(Y_trn)
 
-#print "test: " + str(float(np.count_nonzero(Y_test)) / float(len(Y_test)))
-#Y_test_var = (float(np.count_nonzero(Y_test)) / float(len(Y_test))) * (1 - float((np.count_nonzero(Y_test)) / float(len(Y_test)))) #Y_test.var()
-Y_test_var = Y_test.var()
+for i in range(len(Y_trn_1)): Y_trn[i][int(Y_trn_1[i])] = 1
+Y_trn = Y_trn.reshape([len(Y_trn), X_trn.shape[1]])
 
-Y_test = np.asarray([[0,1] if y == 1 else [1, 0] for y in Y_test])
-Y_test = Y_test.reshape([len(Y_test), 2])
+
+Y_test_var = Y_test_1.var()
+print Y_test_1
+
+Y_test = [0 for i in range(len(Y_test_1))]
+for x in range(len(Y_test)): Y_test[x] = np.zeros(X_test.shape[1])
+Y_test = np.asarray(Y_test)
+
+for i in range(len(Y_test_1)): Y_test[i][int(Y_test_1[i])] = 1
+Y_test = Y_test.reshape([len(Y_test), X_test.shape[1]])
+
 
 
 def get_batch(X, Y):
@@ -35,7 +44,7 @@ print "\nCompleted imports\n"
 
 # Parameters                                                                       
 learning_rate = 0.3
-num_steps = 500
+num_steps = 10000
 batch_size = 70
 display_step = 1
 
@@ -127,6 +136,8 @@ with tf.Session() as sess:
                                       Y: Y_test}))
 
     accu = sess.run(accuracy, feed_dict = {X: X_test, Y: Y_test})
+
+    #print(sess.run(prediction))
 
     print str(accu * (1 - accu))
     print Y_test_var
