@@ -33,6 +33,13 @@ def AdderCircuit(X):
     x2 = 256*x2[0] + x2[1]
     return x1 + x2
 
+def SemiSum(X):
+    n = X.shape[0]
+    X1 = np.array([])
+    for i in range(0, n, 2):
+        X1 = np.append(X1, X[i] or X[i+1])
+    return np.sum(X1)
+
 def CreateData(inputSize, numDataPoints, circuitFunction):
     X = np.atleast_2d(np.array([]))
     Y = np.array([])
@@ -48,7 +55,8 @@ def CreateData(inputSize, numDataPoints, circuitFunction):
 
 functionDict = {'or' : OrCircuit,
                 'sum' : SumCircuit,
-                'adder' : AdderCircuit}
+                'adder' : AdderCircuit,
+                'semisum' : SemiSum}
 
 if len(sys.argv) != 2:
     print "Please specify a circuit from the following list:"
