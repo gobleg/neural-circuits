@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import sys
+import os
 
 print "\nCompleted imports"
 
@@ -167,7 +168,12 @@ with tf.Session() as sess:
     y_var = sess.run(train_var, feed_dict = {X: X_test, Y: Y_test})
 
     # Print the R^2 value
-    print ( "R^2: " + str(1 - (error_pred / y_var)) )
+    name = 'neural net'
+    R2 = 1 - (error_pred / y_var)
+    print ( "R^2: " + str(R2) )
+    if os.path.exists('results_nn.npz'):
+        os.remove('results_nn.npz')
+    np.savez('results_nn.npz', [name], [R2])
 
 
 
