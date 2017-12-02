@@ -1,5 +1,10 @@
 import tensorflow as tf
 import numpy as np
+import sys
+
+print "\nCompleted imports"
+
+####---------------------- DATA PROCESSING ------------------------####
 
 def loadData():
     npzfile = np.load('data.npz')
@@ -13,37 +18,59 @@ def loadData():
     Y_test = Y[n_trn:n]
     return X_trn, X_test, Y_trn, Y_test
 
-X_trn, X_test, Y_trn, Y_test = loadData()
-
-Y_trn = np.asarray([[0,1] if y == 1 else [1, 0] for y in Y_trn])
-Y_trn = Y_trn.reshape([len(Y_trn), 2])
-
-#print "test: " + str(float(np.count_nonzero(Y_test)) / float(len(Y_test)))
-#Y_test_var = (float(np.count_nonzero(Y_test)) / float(len(Y_test))) * (1 - float((np.count_nonzero(Y_test)) / float(len(Y_test)))) #Y_test.var()
-Y_test_var = Y_test.var()
-
-Y_test = np.asarray([[0,1] if y == 1 else [1, 0] for y in Y_test])
-Y_test = Y_test.reshape([len(Y_test), 2])
+X_trn, X_test, Y_trn_1, Y_test_1 = loadData()
 
 
-def get_batch(X, Y):
-    slice = np.random.randint(0, len(X), 100)
+# Preprocess the data to make it ammenable to a classification problem
+
+# Format training data
+Y_trn = [0 for i in range(len(Y_trn_1))]
+for x in range(len(Y_trn)): Y_trn[x] = np.zeros(X_trn.shape[1])
+Y_trn = np.asarray(Y_trn)
+
+for i in range(len(Y_trn_1)): Y_trn[i][int(Y_trn_1[i])] = 1
+Y_trn = Y_trn.reshape([len(Y_trn), X_trn.shape[1]])
+
+
+# Format testing data
+Y_test = [0 for i in range(len(Y_test_1))]
+for x in range(len(Y_test)): Y_test[x] = np.zeros(X_test.shape[1])
+Y_test = np.asarray(Y_test)
+
+for i in range(len(Y_test_1)): Y_test[i][int(Y_test_1[i])] = 1
+Y_test = Y_test.reshape([len(Y_test), X_test.shape[1]])
+
+
+# Function returns a slice of 100 inputs/outputs from the given sets
+# of inputs and outputs
+def get_batch(X, Y, batch_size):
+    slice = np.random.randint(0, len(X), batch_size)
     return X[slice], Y[slice]
 
 
-print "\nCompleted imports\n"
+
+print "Processed training and testing data\n"
+
+
+
+####--------------------- TENSORFLOW SCRIPT -----------------------####
+
 
 # Parameters                                                                       
 learning_rate = 0.3
-num_steps = 500
-batch_size = 70
+num_steps = 3000
+batch_size = 100
 display_step = 1
 
-# Network Parameters                                                               
+# Network Parameters
 n_hidden_1 = 64 # 1st layer number of neurons                                      
 n_hidden_2 = 20 # 2nd layer number of neurons                                      
-num_input = X_trn.shape[1] # MNIST data input (img shape: 28*28)
-num_classes = Y_trn.shape[1] # MNIST total classes (0-9 digits)                                
+num_input = X_trn.shape[1] # Size of input
+num_classes = Y_trn.shape[1] # Size of output
+
+# An accuracy threshold used to prevent overfitting
+early_stopping_threshold = 0.95 
+
 
 # tf Graph input                                                                   
 X = tf.placeholder("float", [None, num_input])
@@ -63,7 +90,7 @@ biases = {
 }
 
 
-# Create model                                                                     
+# Create model. This is a simple feedforward network with 2 hidden layers
 def neural_net(x):
 
     # Hidden fully connected layer with 256 neurons                                
@@ -77,8 +104,6 @@ def neural_net(x):
 
     return out_layer
 
-
-Rsq = lambda a, a_hat: 1 - tf.nn.moments(a - a_hat, axes=[1])[1] / tf.nn.moments(a, axes=[1])[1]
 
 # Construct model                                                                  
 logits = neural_net(X)
@@ -94,9 +119,13 @@ train_op = optimizer.minimize(loss_op)
 correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(Y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
-# Initialize the variables (i.e. assign their default value)                       
-init = tf.initialize_all_variables()
+# Calculate the variances needed to compute R^2
+error_pred_var = tf.reduce_mean(tf.nn.moments(prediction - Y, axes=[1])[1])
+train_var = tf.reduce_mean(tf.nn.moments(Y, axes=[1])[1])
 
+
+# Initialize the variables (i.e. assign their default value)                       
+init = tf.global_variables_initializer()
 
 
 # Start training                                                                   
@@ -108,17 +137,24 @@ with tf.Session() as sess:
     print "\n\nRunning optimization\n\n"
 
     for step in range(1, num_steps+1):
-        batch_x,batch_y = get_batch(X_trn, Y_trn)
+        batch_x,batch_y = get_batch(X_trn, Y_trn, batch_size)
 
         # Run optimization op (backprop)                                           
         sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
-        if step % (100 * display_step) == 0 or step == 1:
-            # Calculate batch loss and accuracy                                    
-            loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x,
+
+        # Calculate batch loss and accuracy                                    
+        loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x,
                                                                  Y: batch_y})
+        if step % (100 * display_step) == 0 or step == 1:
             print("Step " + str(step) + ", Minibatch Loss= " + \
                   "{:.4f}".format(loss) + ", Training Accuracy= " + \
                   "{:.3f}".format(acc))
+
+        if acc > early_stopping_threshold:
+            print("Step " + str(step) + ", Minibatch Loss= " + \
+                      "{:.4f}".format(loss) + ", Training Accuracy= " + \
+                      "{:.3f}".format(acc))
+            break
 
     print("Optimization Finished!\n")
 
@@ -126,12 +162,14 @@ with tf.Session() as sess:
     print("Testing Accuracy: ", sess.run(accuracy, feed_dict={X: X_test,
                                       Y: Y_test}))
 
-    accu = sess.run(accuracy, feed_dict = {X: X_test, Y: Y_test})
+    # Compute (a - a_hat).var() and a.var()
+    error_pred = sess.run(error_pred_var, feed_dict = {X: X_test, Y: Y_test})
+    y_var = sess.run(train_var, feed_dict = {X: X_test, Y: Y_test})
 
-    print str(accu * (1 - accu))
-    print Y_test_var
-    
-    print(  "R^2: " +  str( 1 - (accu * (1 - accu)) / Y_test_var )  )
+    # Print the R^2 value
+    print ( "R^2: " + str(1 - (error_pred / y_var)) )
+
+
 
 
 
