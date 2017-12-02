@@ -6,6 +6,7 @@ for circuit in $circuits
 do
     python circuit.py $circuit
     python nn.py
+    python nn_nonlinear.py
     python regressors.py all
     python graph.py $circuit
 done
