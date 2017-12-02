@@ -1,4 +1,5 @@
 import sys
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import AdaBoostRegressor
@@ -70,7 +71,7 @@ functionDict = {
         'bagging' : bagging,
         'elasticnet' : elasticnet,
         'extratrees' : extratrees,
-        'gradientboosting' : gradientboosting,
+        'grdboost' : gradientboosting,
         'lasso' : lasso,
         'rf' : rf,
         'ridge' : ridge,
@@ -103,7 +104,6 @@ else:
             continue
         names.append(name)
         values.append(regress(X_trn, X_test, Y_trn, Y_test, func))
-    y_pos = np.arange(len(names))
-    plt.barh(y_pos, values, align='center')
-    plt.yticks(y_pos, names)
-    plt.show()
+    if os.path.exists('results.npz'):
+        os.remove('results.npz')
+    np.savez('results.npz', names, values)
