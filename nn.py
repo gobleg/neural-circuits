@@ -168,12 +168,12 @@ with tf.Session() as sess:
     y_var = sess.run(train_var, feed_dict = {X: X_test, Y: Y_test})
 
     # Print the R^2 value
-    name = 'neural net'
+    name = 'linear nn'
     R2 = 1 - (error_pred / y_var)
     print ( "R^2: " + str(R2) )
-    if os.path.exists('results_nn.npz'):
-        os.remove('results_nn.npz')
-    np.savez('results_nn.npz', [name], [R2])
+    if os.path.exists('results_lnn.npz'):
+        os.remove('results_lnn.npz')
+    np.savez('results_lnn.npz', [name], [R2])
 
 
 

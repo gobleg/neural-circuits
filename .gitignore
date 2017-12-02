@@ -1,3 +1,4 @@
 data.npz
 results.npz
-results_nn.npz
+results_lnn.npz
+results_nnn.npz
